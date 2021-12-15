@@ -14,17 +14,33 @@ class MyApp extends StatelessWidget {
           appBar: AppBar(
             title: const Text('Plugin example app'),
           ),
-          body: StreamBuilder<bool>(
-            stream: KeyboardConnection.keyboardConnectedStream,
-            initialData: false,
-            builder: (context, snapshot) {
-              final keyboardConnected = snapshot.data ?? false;
-              return Center(
-                child: Text(
-                  '${keyboardConnected ? 'keyboard connected' : 'No keyboard connected'}\n',
-                ),
-              );
-            },
+          body: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FutureBuilder<bool>(
+                future: KeyboardConnection.keyboardConnected,
+                builder: (context, snapshot) {
+                  final keyboardConnected = snapshot.data ?? false;
+                  return Center(
+                    child: Text(
+                      '${keyboardConnected ? 'keyboard initially connected' : 'No keyboard initially connected'}\n',
+                    ),
+                  );
+                },
+              ),
+              StreamBuilder<bool>(
+                stream: KeyboardConnection.keyboardConnectedStream,
+                initialData: false,
+                builder: (context, snapshot) {
+                  final keyboardConnected = snapshot.data ?? false;
+                  return Center(
+                    child: Text(
+                      '${keyboardConnected ? 'keyboard connected' : 'No keyboard connected'}\n',
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
         ),
       );

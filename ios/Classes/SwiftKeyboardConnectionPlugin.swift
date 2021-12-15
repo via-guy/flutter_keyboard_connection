@@ -33,7 +33,7 @@ public class SwiftKeyboardConnectionPlugin: NSObject, FlutterPlugin, FlutterStre
             forName: .GCKeyboardDidDisconnect,
             object: nil,
             queue: nil) { [unowned self] _ in
-                keyboardDidConnect()
+                keyboardDidDisonnect()
             }
     }
 
