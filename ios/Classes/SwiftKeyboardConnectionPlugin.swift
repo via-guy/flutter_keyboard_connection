@@ -3,6 +3,14 @@ import GameController
 import UIKit
 
 public class SwiftKeyboardConnectionPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
+    struct Errors {
+        static let unsupportedVersion = FlutterError(
+            code: "Unsupported OS",
+            message: "Hardware keyboard detection is only available on iOS 14+",
+            details: nil
+        )
+    }
+
     public static func register(with registrar: FlutterPluginRegistrar) {
         let instance = SwiftKeyboardConnectionPlugin()
 
@@ -13,46 +21,67 @@ public class SwiftKeyboardConnectionPlugin: NSObject, FlutterPlugin, FlutterStre
         eventChannel.setStreamHandler(instance)
     }
 
-    static var isHardwareKeyboardConnected: Bool { GCKeyboard.coalesced != nil }
+    static var isHardwareKeyboardConnected: Bool {
+        if #available(iOS 14.0, *) {
+            return GCKeyboard.coalesced != nil
+        } else {
+            return false
+        }
+    }
 
-    private var keyboardDidConnectHandler: NSObjectProtocol!
-    private var keyboardDidDisconnectHandler: NSObjectProtocol!
+    private var keyboardDidConnectHandler: NSObjectProtocol?
+    private var keyboardDidDisconnectHandler: NSObjectProtocol?
     private var eventSink: FlutterEventSink?
 
     override init() {
         super.init()
 
-        keyboardDidConnectHandler = NotificationCenter.default.addObserver(
-            forName: .GCKeyboardDidConnect,
-            object: nil,
-            queue: nil) { [unowned self] _ in
-                keyboardDidConnect()
-            }
+        if #available(iOS 14.0, *) {
+            keyboardDidConnectHandler = NotificationCenter.default.addObserver(
+                forName: .GCKeyboardDidConnect,
+                object: nil,
+                queue: nil) { [unowned self] _ in
+                    keyboardDidConnect()
+                }
 
-        keyboardDidDisconnectHandler = NotificationCenter.default.addObserver(
-            forName: .GCKeyboardDidDisconnect,
-            object: nil,
-            queue: nil) { [unowned self] _ in
-                keyboardDidDisonnect()
-            }
+            keyboardDidDisconnectHandler = NotificationCenter.default.addObserver(
+                forName: .GCKeyboardDidDisconnect,
+                object: nil,
+                queue: nil) { [unowned self] _ in
+                    keyboardDidDisonnect()
+                }
+        }
     }
 
     public func detachFromEngine(for registrar: FlutterPluginRegistrar) {
-        NotificationCenter.default.removeObserver(keyboardDidConnectHandler!)
-        NotificationCenter.default.removeObserver(keyboardDidDisconnectHandler!)
+        if let keyboardDidConnectHandler = keyboardDidConnectHandler {
+            NotificationCenter.default.removeObserver(keyboardDidConnectHandler)
+        }
+        if let keyboardDidDisconnectHandler = keyboardDidDisconnectHandler {
+            NotificationCenter.default.removeObserver(keyboardDidDisconnectHandler)
+        }
         eventSink = nil
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         if (call.method == "getKeyboardConnected") {
-            result(SwiftKeyboardConnectionPlugin.isHardwareKeyboardConnected)
+            if #available(iOS 14.0, *) {
+                result(SwiftKeyboardConnectionPlugin.isHardwareKeyboardConnected)
+            } else {
+                result(Errors.unsupportedVersion)
+            }
         }
     }
 
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
-        events(SwiftKeyboardConnectionPlugin.isHardwareKeyboardConnected)
-        eventSink = events
-        return nil
+        if #available(iOS 14.0, *) {
+            events(SwiftKeyboardConnectionPlugin.isHardwareKeyboardConnected)
+            eventSink = events
+            return nil
+        } else {
+            events(Errors.unsupportedVersion)
+            return Errors.unsupportedVersion
+        }
     }
 
     public func onCancel(withArguments arguments: Any?) -> FlutterError? {

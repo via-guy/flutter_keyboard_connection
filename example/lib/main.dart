@@ -21,10 +21,13 @@ class MyApp extends StatelessWidget {
                 future: KeyboardConnection.keyboardConnected,
                 builder: (context, snapshot) {
                   final keyboardConnected = snapshot.data ?? false;
+                  final text = snapshot.hasError
+                      ? snapshot.error?.toString()
+                      : keyboardConnected
+                          ? 'keyboard initially connected'
+                          : 'No keyboard initially connected';
                   return Center(
-                    child: Text(
-                      '${keyboardConnected ? 'keyboard initially connected' : 'No keyboard initially connected'}\n',
-                    ),
+                    child: Text('$text\n'),
                   );
                 },
               ),
@@ -33,10 +36,13 @@ class MyApp extends StatelessWidget {
                 initialData: false,
                 builder: (context, snapshot) {
                   final keyboardConnected = snapshot.data ?? false;
+                  final text = snapshot.hasError
+                      ? snapshot.error?.toString()
+                      : keyboardConnected
+                          ? 'keyboard connected'
+                          : 'No keyboard connected';
                   return Center(
-                    child: Text(
-                      '${keyboardConnected ? 'keyboard connected' : 'No keyboard connected'}\n',
-                    ),
+                    child: Text('$text\n'),
                   );
                 },
               ),
