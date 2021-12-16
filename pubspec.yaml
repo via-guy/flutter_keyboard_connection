@@ -1,7 +1,7 @@
 name: keyboard_connection
-description: A new flutter plugin project.
+description: Quickly and easily check if an external keyboard (or barcode scanner) is connected to the device.
 version: 0.0.1
-homepage:
+publish_to: "none"
 
 environment:
   sdk: ">=2.15.0 <3.0.0"
